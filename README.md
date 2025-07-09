@@ -70,6 +70,9 @@ When you run the adapter, two separate components are created:
 
 **Key Point**: The A2A Server (port 10000) is what A2A clients connect to. The Bridge uAgent (port 8082) is internal infrastructure that handles the Agentverse communication.
 
+<img width="896" alt="Screenshot 2025-07-08 at 10 54 16 PM" src="https://github.com/user-attachments/assets/0e93d061-881a-4bb2-8228-dafa40e9cb6b" />
+
+
 ## What This Does
 
 - **Input**: Any Agentverse uAgent address
