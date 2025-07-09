@@ -25,9 +25,9 @@ async def main() -> None:
 
     # --8<-- [start:A2ACardResolver]
 
-    base_url = 'http://localhost:10000'
+    base_url = 'http://localhost:9001'
 
-    async with httpx.AsyncClient(timeout=120.0) as httpx_client:
+    async with httpx.AsyncClient() as httpx_client:
         # Initialize A2ACardResolver
         resolver = A2ACardResolver(
             httpx_client=httpx_client,
@@ -115,7 +115,7 @@ async def main() -> None:
             'message': {
                 'role': 'user',
                 'parts': [
-                    {'kind': 'text', 'text': 'What is USD to EUR rate currently?'}
+                    {'kind': 'text', 'text': 'What are the latest developments in artificial intelligence?'}
                 ],
                 'messageId': uuid4().hex,
             },
@@ -135,7 +135,7 @@ async def main() -> None:
                 'parts': [
                     {
                         'kind': 'text',
-                        'text': 'How much is the exchange rate for 1 USD?',
+                        'text': 'Tell me about quantum computing breakthroughs',
                     }
                 ],
                 'messageId': uuid4().hex,
@@ -155,7 +155,7 @@ async def main() -> None:
         second_send_message_payload_multiturn: dict[str, Any] = {
             'message': {
                 'role': 'user',
-                'parts': [{'kind': 'text', 'text': 'CAD'}],
+                'parts': [{'kind': 'text', 'text': 'What about machine learning advances in 2025?'}],
                 'messageId': uuid4().hex,
                 'taskId': task_id,
                 'contextId': contextId,

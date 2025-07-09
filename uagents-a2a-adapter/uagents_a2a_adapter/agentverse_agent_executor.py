@@ -2,6 +2,8 @@ import logging
 import asyncio
 import threading
 import time
+from datetime import datetime, timezone
+from uuid import uuid4
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue
 from a2a.server.tasks import TaskUpdater
@@ -20,37 +22,47 @@ from a2a.utils import (
 )
 from a2a.utils.errors import ServerError
 
-# Import uAgent for bridge communication
-from uagents import Agent, Context, Model
+# Import uAgent and chat protocol
+from uagents import Agent, Context, Protocol
+from uagents_core.contrib.protocols.chat import (
+    ChatMessage,
+    ChatAcknowledgement,
+    TextContent,
+    chat_protocol_spec
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Message models for uAgent communication
-class QueryMessage(Model):
-    query: str
-
-class ResponseMessage(Model):
-    response: str
-
-class CurrencyAgentExecutor(AgentExecutor):
-    """Currency Conversion AgentExecutor that bridges to uAgent."""
+class AgentverseAgentExecutor(AgentExecutor):
+    """Generic AgentExecutor that bridges to any Agentverse uAgent via chat protocol."""
     
-    def __init__(self):
-        # Instead of: self.agent = CurrencyAgent()
-        # Create bridge to your currency uAgent
-        self.uagent_address = "agent1qv3yr66aw2qu3gzce5ckae84uj8ea5hua90q9mzwxcr9ghvtv0xeykme4dv"  # Your uAgent address
+    def __init__(self, target_agent_address: str, bridge_name: str = "a2a_bridge", bridge_port: int = 8082):
+        """
+        Initialize the bridge to a specific Agentverse agent.
+        
+        Args:
+            target_agent_address: The address of the target uAgent on Agentverse
+            bridge_name: Name for the bridge agent (default: "a2a_bridge")
+            bridge_port: Port for the bridge agent (default: 8082)
+        """
+        self.target_agent_address = target_agent_address
+        self.bridge_name = bridge_name
+        self.bridge_port = bridge_port
         self.response_cache = {}
         self.bridge_running = False
         self.pending_requests = {}
         
-        # Create bridge agent with mailbox to communicate via Agentverse (same as currency uAgent)
+        # Create bridge agent with mailbox to communicate via Agentverse
         self.bridge_agent = Agent(
-            name="a2a_bridge",
-            port=8082,
-            seed="a2a_bridge_seed",
-            mailbox=True  # Enable mailbox so it can communicate with currency uAgent via Agentverse
+            name=bridge_name,
+            port=bridge_port,
+            seed=f"{bridge_name}_seed",
+            mailbox=True  # Enable mailbox for Agentverse communication
         )
+        
+        # Setup chat protocol
+        self.chat_proto = Protocol(spec=chat_protocol_spec)
         self._setup_bridge()
         self._start_bridge()
         
@@ -61,27 +73,63 @@ class CurrencyAgentExecutor(AgentExecutor):
         async def bridge_startup(ctx: Context):
             self.bridge_running = True
             logger.info(f"A2A Bridge agent started with address: {ctx.agent.address}")
+            logger.info(f"Target Agentverse agent: {self.target_agent_address}")
         
-        @self.bridge_agent.on_message(model=ResponseMessage)
-        async def handle_response(ctx: Context, sender: str, msg: ResponseMessage):
-            # Use the sender address to match with pending request
+        @self.chat_proto.on_message(ChatMessage)
+        async def handle_chat_response(ctx: Context, sender: str, msg: ChatMessage):
+            """Handle chat message responses from target agent."""
+            # Extract text content from chat message
+            response_text = ""
+            for content in msg.content:
+                if isinstance(content, TextContent):
+                    response_text += content.text
+            
+            # Match with pending request based on sender
             for request_id, request_info in list(self.pending_requests.items()):
                 if request_info['target'] == sender:
-                    self.response_cache[request_id] = msg.response
+                    self.response_cache[request_id] = response_text
                     del self.pending_requests[request_id]
-                    logger.info(f"Received response from currency uAgent: {msg.response[:100]}...")
+                    logger.info(f"Received chat response from {sender}: {response_text[:100]}...")
+                    
+                    # Send acknowledgment
+                    ack_msg = ChatAcknowledgement(
+                        timestamp=datetime.now(timezone.utc),
+                        acknowledged_msg_id=msg.msg_id
+                    )
+                    await ctx.send(sender, ack_msg)
                     break
         
-        # Add a periodic task to process pending requests
+        @self.chat_proto.on_message(ChatAcknowledgement)
+        async def handle_chat_ack(ctx: Context, sender: str, msg: ChatAcknowledgement):
+            """Handle chat acknowledgments."""
+            logger.info(f"Chat message acknowledged by {sender}")
+        
+        # Add periodic task to process pending requests
         @self.bridge_agent.on_interval(period=0.1)
         async def process_pending_requests(ctx: Context):
             # Process any pending requests
             for request_id, request_info in list(self.pending_requests.items()):
                 if not request_info.get('sent', False):
-                    query_msg = QueryMessage(query=request_info['query'])
-                    await ctx.send(self.uagent_address, query_msg)
+                    # Pass user context for per-user authentication
+                    # Format: [USER_CONTEXT:context_id] actual_query
+                    context_id = request_info.get('contextId', request_info.get('context_id', 'unknown'))
+                    contextual_query = f"[USER_CONTEXT:{context_id}] {request_info['query']}"
+                    
+                    # Create chat message with user context
+                    chat_msg = ChatMessage(
+                        timestamp=datetime.now(timezone.utc),
+                        msg_id=uuid4(),
+                        content=[TextContent(type="text", text=contextual_query)]
+                    )
+                    
+                    # Send to target agent
+                    await ctx.send(self.target_agent_address, chat_msg)
                     self.pending_requests[request_id]['sent'] = True
-                    self.pending_requests[request_id]['target'] = self.uagent_address
+                    self.pending_requests[request_id]['target'] = self.target_agent_address
+                    logger.info(f"Sent chat message to {self.target_agent_address}")
+        
+        # Include chat protocol
+        self.bridge_agent.include(self.chat_proto)
     
     def _start_bridge(self):
         """Start bridge agent in background thread."""
@@ -99,7 +147,7 @@ class CurrencyAgentExecutor(AgentExecutor):
             wait_count += 1
         
         if self.bridge_running:
-            logger.info("✅ A2A Bridge to uAgent started successfully")
+            logger.info("✅ A2A Bridge to Agentverse started successfully")
         else:
             logger.error("❌ Failed to start A2A bridge")
 
@@ -108,6 +156,7 @@ class CurrencyAgentExecutor(AgentExecutor):
         context: RequestContext,
         event_queue: EventQueue,
     ) -> None:
+        """Execute A2A request by bridging to Agentverse agent."""
         error = self._validate_request(context)
         if error:
             raise ServerError(error=InvalidParamsError())
@@ -122,10 +171,8 @@ class CurrencyAgentExecutor(AgentExecutor):
         updater = TaskUpdater(event_queue, task.id, task.contextId)
         
         try:
-            # Instead of: async for item in self.agent.stream(query, task.contextId):
-            # Use bridge to communicate with uAgent:
-            logger.info("Starting async iteration over uAgent bridge responses")
-            async for item in self._stream_via_uagent(query, task.contextId):
+            logger.info("Starting async iteration over Agentverse bridge responses")
+            async for item in self._stream_via_agentverse(query, task.contextId):
                 logger.info(f"Received item from bridge: {item}")
                 is_task_complete = item['is_task_complete']
                 require_user_input = item['require_user_input']
@@ -156,7 +203,7 @@ class CurrencyAgentExecutor(AgentExecutor):
                     logger.info("Adding artifact and completing task")
                     await updater.add_artifact(
                         [Part(root=TextPart(text=item['content']))],
-                        name='conversion_result',
+                        name='agentverse_result',
                     )
                     await updater.complete()
                     logger.info("Task completed successfully")
@@ -166,19 +213,19 @@ class CurrencyAgentExecutor(AgentExecutor):
             logger.error(f'An error occurred while streaming the response: {e}')
             raise ServerError(error=InternalError()) from e
 
-    async def _stream_via_uagent(self, query: str, context_id: str):
+    async def _stream_via_agentverse(self, query: str, context_id: str):
         """
-        Bridge method that replaces self.agent.stream() 
-        Same interface, but communicates with uAgent instead of direct LangGraph.
+        Bridge method that communicates with Agentverse agent via chat protocol.
+        Maintains same interface as direct agent execution.
         """
         try:
-            logger.info(f"Processing query via uAgent bridge: {query}")
+            logger.info(f"Processing query via Agentverse bridge: {query}")
             
-            # Send working status first (same as original)
+            # Send working status first
             yield {
                 'is_task_complete': False,
                 'require_user_input': False,
-                'content': 'Looking up the exchange rates...'
+                'content': 'Connecting to Agentverse agent...'
             }
             
             # Create unique request ID
@@ -187,12 +234,13 @@ class CurrencyAgentExecutor(AgentExecutor):
             # Add request to pending queue
             self.pending_requests[request_id] = {
                 'query': query,
+                'contextId': context_id,
                 'sent': False,
                 'target': None
             }
             
             # Wait for response with timeout
-            timeout = 60  # 30 seconds
+            timeout = 120  # 2 minutes timeout
             wait_count = 0
             
             while request_id not in self.response_cache and wait_count < timeout:
@@ -201,13 +249,12 @@ class CurrencyAgentExecutor(AgentExecutor):
             
             if request_id in self.response_cache:
                 response = self.response_cache.pop(request_id)
-                logger.info(f"Successfully received response from currency uAgent")
+                logger.info(f"Successfully received response from Agentverse agent")
                 
-                # Mimic the original agent's response format
                 # Check if response indicates need for more input
                 if any(phrase in response.lower() for phrase in [
                     "need more", "specify", "unclear", "provide more details", 
-                    "which currency", "what amount"
+                    "can you provide", "please provide", "which", "what", "how"
                 ]):
                     logger.info("Yielding input_required response")
                     yield {
@@ -216,7 +263,7 @@ class CurrencyAgentExecutor(AgentExecutor):
                         'content': response
                     }
                 else:
-                    # Successful completion (same format as original)
+                    # Successful completion
                     logger.info("Yielding completed response")
                     yield {
                         'is_task_complete': True,
@@ -227,28 +274,30 @@ class CurrencyAgentExecutor(AgentExecutor):
                 return  # Explicitly return to end the generator
             else:
                 # Timeout occurred
-                logger.error("uAgent communication timed out")
+                logger.error("Agentverse communication timed out")
                 # Clean up pending request
                 if request_id in self.pending_requests:
                     del self.pending_requests[request_id]
                 yield {
                     'is_task_complete': False,
                     'require_user_input': True,
-                    'content': 'Currency request timed out. Please try again.'
+                    'content': 'Request timed out. Please try again.'
                 }
                 
         except Exception as e:
-            logger.error(f"Error in uAgent bridge communication: {e}")
+            logger.error(f"Error in Agentverse bridge communication: {e}")
             yield {
                 'is_task_complete': False,
                 'require_user_input': True,
-                'content': f'Error communicating with currency agent: {str(e)}'
+                'content': f'Error communicating with Agentverse agent: {str(e)}'
             }
 
     def _validate_request(self, context: RequestContext) -> bool:
+        """Validate the incoming request."""
         return False
 
     async def cancel(
         self, context: RequestContext, event_queue: EventQueue
     ) -> None:
+        """Cancel operation - not supported."""
         raise ServerError(error=UnsupportedOperationError())

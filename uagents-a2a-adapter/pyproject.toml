@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uagents-a2a-adapter"
+version = "1.0.0"
+description = "A2A Adapter for uAgents - Convert any uAgent to A2A HTTP endpoint with session persistence"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Agentverse Team"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+keywords = ["uagents", "a2a", "adapter", "agent", "ai", "agentverse"]
+
+dependencies = [
+    "click>=8.0.0",
+    "uvicorn>=0.20.0",
+    "httpx>=0.24.0",
+    "uagents>=0.12.0",
+    "a2a>=0.44",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0",
+]
+
+[project.scripts]
+uagents-a2a = "uagents_a2a_adapter.main:main"
+
+[project.urls]
+Homepage = "https://github.com/fetchai/uagents-adapter"
+Repository = "https://github.com/fetchai/uagents-adapter"
+Documentation = "https://docs.agentverse.ai"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=22.0.0",
+    "flake8>=5.0.0",
+    "mypy>=1.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["uagents_a2a_adapter*"]
+
+[tool.setuptools.package-data]
+"uagents_a2a_adapter" = ["*.md", "examples/*"]

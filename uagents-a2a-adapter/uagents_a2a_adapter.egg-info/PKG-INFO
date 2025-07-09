@@ -1,0 +1,207 @@
+Metadata-Version: 2.4
+Name: uagents-a2a-adapter
+Version: 1.0.0
+Summary: A2A Adapter for uAgents - Convert any uAgent to A2A HTTP endpoint with session persistence
+Author: Agentverse Team
+License: Apache-2.0
+Project-URL: Homepage, https://github.com/fetchai/uagents-adapter
+Project-URL: Repository, https://github.com/fetchai/uagents-adapter
+Project-URL: Documentation, https://docs.agentverse.ai
+Keywords: uagents,a2a,adapter,agent,ai,agentverse
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: click>=8.0.0
+Requires-Dist: uvicorn>=0.20.0
+Requires-Dist: httpx>=0.24.0
+Requires-Dist: uagents>=0.12.0
+Requires-Dist: a2a>=0.44
+Requires-Dist: python-dotenv>=1.0.0
+Requires-Dist: pydantic>=2.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: black>=22.0.0; extra == "dev"
+Requires-Dist: flake8>=5.0.0; extra == "dev"
+Requires-Dist: mypy>=1.0.0; extra == "dev"
+
+# uAgents A2A Adapter
+
+Convert any uAgent to an A2A HTTP endpoint with built-in session persistence and multi-user isolation.
+
+![uAgents](https://img.shields.io/badge/uAgents-Compatible-blue) ![A2A](https://img.shields.io/badge/A2A-Bridge-green) ![Session](https://img.shields.io/badge/Session-Persistent-orange)
+
+## 🎯 What This Does
+
+Takes **any uAgent address** and creates an **A2A HTTP endpoint** that any A2A client can use:
+
+```
+uAgent (agent1q...) → A2A Adapter → HTTP Endpoint (localhost:10000)
+```
+
+## 🚀 Installation
+
+```bash
+pip install uagents-a2a-adapter
+```
+
+## 📖 Quick Start
+
+### Command Line (Recommended)
+
+```bash
+# GitHub MCP Agent (requires authentication)
+uagents-a2a --agent-address agent1qv7uuldfcrp3f3y6309amaspr2e8f26g7qhh2lln62n2ssa04ugzk9rsw4 \
+            --agent-name "GitHub Agent" \
+            --agent-description "GitHub repository management"
+
+# Perplexity Agent (no authentication)  
+uagents-a2a --agent-address agent1qdt7w94gdwj6ksmwzpvn6aesrvt6qcu3nvdpfx20hqdgzd6xkc02kgh5u4xn6 \
+            --agent-name "Perplexity Agent" \
+            --agent-description "AI search and research"
+```
+
+### Programmatic Usage
+
+```python
+from uagents_a2a_adapter import A2ARegisterTool
+
+# Create the adapter tool
+adapter = A2ARegisterTool()
+
+# Register any uAgent as A2A endpoint
+result = adapter.invoke({
+    "agent_address": "agent1qv7uuldfcrp3f3y6309amaspr2e8f26g7qhh2lln62n2ssa04ugzk9rsw4",
+    "name": "GitHub Agent", 
+    "description": "GitHub repository management",
+    "port": 10000,
+    "return_dict": True
+})
+
+print(f"A2A server started: {result['endpoint']}")
+```
+
+## 🔧 Parameters
+
+| Parameter | Required | Default | Description |
+|-----------|----------|---------|-------------|
+| `--agent-address` | ✅ | - | uAgent address to bridge to |
+| `--agent-name` | ❌ | "A2A Agent" | Display name |
+| `--agent-description` | ❌ | Auto-generated | Agent description |
+| `--host` | ❌ | "localhost" | Host to bind to |
+| `--port` | ❌ | 10000 | Port to bind to |
+| `--skill-tags` | ❌ | "general,assistance" | Comma-separated tags |
+| `--skill-examples` | ❌ | "Help me with my query" | Comma-separated examples |
+
+## 💡 Examples
+
+### Testing with cURL
+
+```bash
+# Start the adapter
+uagents-a2a --agent-address agent1qdt7... --agent-name "Test Agent"
+
+# Test with cURL
+curl -X POST http://localhost:10000 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "test-1",
+    "method": "message/send", 
+    "params": {
+      "message": {
+        "role": "user",
+        "parts": [{"kind": "text", "text": "Hello!"}],
+        "messageId": "msg-1"
+      },
+      "contextId": "user-123"
+    }
+  }'
+```
+
+### With SmartA2AClient (Python)
+
+```python
+from smart_client import SmartA2AClient
+
+async with SmartA2AClient("http://localhost:10000") as client:
+    response = await client.send_message("What's the weather?")
+    print(response)
+```
+
+## 🔐 Authentication Support
+
+The adapter automatically handles authentication for agents that require it:
+
+- **GitHub Agent**: Auto-detects auth requirements, supports Personal Access Token and Device Flow OAuth
+- **Other Auth Agents**: Transparent authentication flow with session persistence
+- **Non-Auth Agents**: Works seamlessly without any authentication setup
+
+## 🏗️ Features
+
+### ✅ Session Persistence
+- Each user gets isolated authentication sessions
+- Multi-request conversations maintain context
+- No session leakage between users
+
+### ✅ Universal Compatibility  
+- Works with **any uAgent address**
+- Backward compatible with all existing agents
+- No modifications needed to target agents
+
+### ✅ Easy Integration
+- Simple command-line interface
+- Programmatic API available
+- Standard A2A JSON-RPC protocol
+
+### ✅ Production Ready
+- Built-in error handling and timeouts
+- Comprehensive logging
+- Scalable architecture
+
+## 🌟 Popular uAgent Addresses
+
+```bash
+# GitHub MCP Agent (authentication required)
+agent1qv7uuldfcrp3f3y6309amaspr2e8f26g7qhh2lln62n2ssa04ugzk9rsw4
+
+# Perplexity Search Agent  
+agent1qdt7w94gdwj6ksmwzpvn6aesrvt6qcu3nvdpfx20hqdgzd6xkc02kgh5u4xn6
+
+# Weather Agent
+agent1qg5j0lffksyxgf4jd5tefennt45v6pezr2k7x6kjf4fxqwv7kw3yurqgzux
+
+# Currency Converter Agent  
+agent1qwmtkg7trnldee6smye6tf98d8f3fj8rfy0puu9zq3nfhg2hkv70khc7uz3
+```
+
+## 📋 Requirements
+
+- Python 3.8+
+- uAgents library
+- A2A SDK
+- Agent address from Agentverse
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Submit a pull request
+
+## 📄 License
+
+Apache 2.0 License - see LICENSE file for details.
+
+---
+
+**Built for the uAgents ecosystem** 🤖 **Made with ❤️ by the Agentverse team**

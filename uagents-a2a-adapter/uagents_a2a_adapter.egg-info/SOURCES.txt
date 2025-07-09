@@ -1,0 +1,12 @@
+README.md
+pyproject.toml
+uagents_a2a_adapter/__init__.py
+uagents_a2a_adapter/adapter.py
+uagents_a2a_adapter/agentverse_agent_executor.py
+uagents_a2a_adapter/main.py
+uagents_a2a_adapter.egg-info/PKG-INFO
+uagents_a2a_adapter.egg-info/SOURCES.txt
+uagents_a2a_adapter.egg-info/dependency_links.txt
+uagents_a2a_adapter.egg-info/entry_points.txt
+uagents_a2a_adapter.egg-info/requires.txt
+uagents_a2a_adapter.egg-info/top_level.txt
