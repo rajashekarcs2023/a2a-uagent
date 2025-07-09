@@ -96,10 +96,10 @@ uagents-a2a \
   --host localhost \
   --port 9001 \
   --agent-address "agent1qdv2qgxucvqatam6nv28qp202f3pw8xqpfm8man6zyegztuzd2t6yem9evl" \
-  --agent-name "Perplexity Search Agent" \
-  --agent-description "Provides web search and research capabilities" \
-  --skill-tags "search,research,perplexity,web" \
-  --skill-examples "Search for latest AI news,What happened today?,Research topic X"
+  --agent-name "Finance Q&A Agent" \
+  --agent-description "Provides explanation on various finance terms" \
+  --skill-tags "finance,explanation,terms" \
+  --skill-examples "what is a stock, how to trade, what is a bond"
 ```
 
 ### Step 3: Expected Output
@@ -113,7 +113,7 @@ INFO:     [a2a_agentverse_bridge]: Agent inspector available at https://agentver
 INFO:uagents_a2a_adapter.agentverse_agent_executor:✅ A2A Bridge to Agentverse started successfully
 INFO:uagents_a2a_adapter.main:🚀 A2A server starting on localhost:9001
 INFO:uagents_a2a_adapter.main:🔗 Bridging to Agentverse agent: agent1qdv2qgxucvqatam6nv28qp202f3pw8xqpfm8man6zyegztuzd2t6yem9evl
-INFO:uagents_a2a_adapter.main:📋 Agent name: Perplexity Search Agent
+INFO:uagents_a2a_adapter.main:📋 Agent name: Finance Q&A Agent
 INFO:     Uvicorn running on http://localhost:9001 (Press CTRL+C to quit)
 ```
 
@@ -141,7 +141,7 @@ curl -X POST http://localhost:9001 \
         "parts": [
           {
             "kind": "text",
-            "text": "What are the latest developments in AI agents?"
+            "text": "What is a stock?"
           }
         ],
         "messageId": "msg-1"
