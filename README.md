@@ -13,8 +13,8 @@ This adapter allows any A2A client to communicate with Agentverse uAgents by cre
 ### Install the Package
 
 ```bash
-# Install from PyPI (recommended)
-pip install uagents-a2a-adapter
+# Install from Test PyPI (recommended)
+pip install -i https://test.pypi.org/simple/ uagents-a2a-adapter==1.0.5
 ```
 
 #### Development Installation
@@ -117,7 +117,7 @@ python -m venv fresh-env
 source fresh-env/bin/activate  # On Windows: fresh-env\Scripts\activate
 
 # Install the package from TestPyPI
-pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ uagents-a2a-adapter==1.0.4
+pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ uagents-a2a-adapter==1.0.5
 ```
 
 ### Step 2: Basic Import Testing
@@ -631,12 +631,22 @@ and use the agent
 
 The package automatically installs these dependencies:
 
-- `a2a>=0.44` - A2A protocol implementation
-- `uvicorn` - ASGI server for HTTP endpoints
-- `click` - CLI framework
-- `httpx` - Async HTTP client
-- `python-dotenv` - Environment variable management
-- `uagents` - uAgents framework
-- `uagents-core` - Core uAgents functionality
+### Core Dependencies
+- `click>=8.0.0` - CLI framework for command-line interface
+- `uvicorn>=0.20.0` - ASGI server for HTTP endpoints
+- `httpx>=0.24.0` - Async HTTP client for API communication
+- `uagents>=0.12.0` - uAgents framework for agent functionality
+- `a2a-sdk>=0.2.8` - A2A protocol SDK implementation
+- `python-dotenv>=1.0.0` - Environment variable management
+- `pydantic>=2.0.0` - Data validation and serialization
+- `starlette>=0.37.0` - Web framework components
+
+### Optional Dependencies (for examples)
+- `requests>=2.28.0` - HTTP library for API calls
+- `langchain-core>=0.3.0` - LangChain core functionality
+- `langchain-google-genai>=2.0.0` - Google Gemini integration
+- `langchain-openai>=0.2.0` - OpenAI integration
+- `langgraph>=0.2.0` - Graph-based LangChain workflows
+- `sqlalchemy>=2.0.0` - Database ORM (required by a2a-sdk)
 
 Now any A2A client can discover your uAgent and communicate with it using standard A2A protocol!
