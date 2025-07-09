@@ -379,11 +379,16 @@ and use the agent
 The package automatically installs these dependencies:
 
 - `a2a>=0.44` - A2A protocol implementation
+- `a2a-sdk>=0.2.8` - A2A SDK for uAgents
 - `uvicorn` - ASGI server for HTTP endpoints
 - `click` - CLI framework
 - `httpx` - Async HTTP client
 - `python-dotenv` - Environment variable management
 - `uagents` - uAgents framework
 - `uagents-core` - Core uAgents functionality
+- `langchain` - Language model integration
+- `langchain-openai` - OpenAI integration for LangChain
+- `langchain-core` - Core LangChain functionality
+
 
 Now any A2A client can discover your uAgent and communicate with it using standard A2A protocol!
