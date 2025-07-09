@@ -13,7 +13,14 @@ This adapter allows any A2A client to communicate with Agentverse uAgents by cre
 ### Install the Package
 
 ```bash
-# Install from source (recommended for development)
+# Install from PyPI (recommended)
+pip install uagents-a2a-adapter
+```
+
+#### Development Installation
+
+```bash
+# Install from source (for development)
 git clone <repository-url>
 cd uagents-a2a-adapter
 pip install -e .
@@ -62,8 +69,6 @@ When you run the adapter, two separate components are created:
 7. A2A Server streams response back to A2A client
 
 **Key Point**: The A2A Server (port 10000) is what A2A clients connect to. The Bridge uAgent (port 8082) is internal infrastructure that handles the Agentverse communication.
-<img width="896" alt="Screenshot 2025-07-08 at 10 54 16 PM" src="https://github.com/user-attachments/assets/6727d59a-1a12-48f4-a6d9-307c4dad414e" />
-
 
 ## What This Does
 
@@ -80,58 +85,104 @@ When you run the adapter, two separate components are created:
 
 ## Quick Start
 
-### Step 1: Get Target Agent Address
-Find the Agentverse uAgent you want to use (e.g., `agent1qdv2qgxucvqatam6nv28qp202f3pw8xqpfm8man6zyegztuzd2t6yem9evl`)
+Get started in **3 simple steps** with our complete Currency Exchange example:
 
-### Step 2: Run the Adapter
+### Step 1: Run the Currency uAgent
 
-Using the CLI command:
+First, start the currency exchange uAgent:
 
 ```bash
-uagents-a2a --agent-address "agent1qdv2qgxucvqatam6nv28qp202f3pw8xqpfm8man6zyegztuzd2t6yem9evl"
+# Navigate to the example
+cd examples/currency-exchange-agent
+
+# Install dependencies (if needed)
+pip install langchain-google-genai python-dotenv
+
+# Set your Google API key
+export GOOGLE_API_KEY="your-google-api-key"
+
+# Run the currency uAgent
+python currency_uagent.py
 ```
 
-With custom options:
+The agent will start and display its address:
+```
+INFO: Currency Exchange Agent started
+INFO: Agent address: agent1q...
+INFO: Agent running on port 8007
+```
+
+### Step 2: Start the A2A Adapter
+
+Copy the agent address from the logs and start the A2A adapter:
 
 ```bash
+# Use the agent address from Step 1
 uagents-a2a \
-  --host localhost \
-  --port 9001 \
-  --agent-address "agent1qdv2qgxucvqatam6nv28qp202f3pw8xqpfm8man6zyegztuzd2t6yem9evl" \
-  --agent-name "Finance Q&A Agent" \
-  --agent-description "Provides explanation on various finance terms" \
-  --skill-tags "finance,explanation,terms" \
-  --skill-examples "what is a stock, how to trade, what is a bond"
+  --agent-address "agent1q..." \
+  --agent-name "Currency Exchange Agent" \
+  --agent-description "Real-time currency exchange rates with natural language processing" \
+  --skill-tags "currency,exchange,rates,finance" \
+  --skill-examples "Convert USD to EUR,What is the exchange rate for GBP to JPY,100 dollars to euros"
 ```
 
-### Step 3: Expected Output
+#### Expected Output
+
+You'll see the A2A adapter start successfully:
 
 ```
-INFO:uagents_a2a_adapter.main:Starting A2A server bridged to Agentverse agent: agent1qdv2qgxucvqatam6nv28qp202f3pw8xqpfm8man6zyegztuzd2t6yem9evl
-INFO:     [a2a_agentverse_bridge]: Starting agent with address: agent1qtmxvc3lp8qn9jtq4w22xw27ygx9qvuzme85un6cdn9r4v8fxszs5d4rsr2
-INFO:uagents_a2a_adapter.agentverse_agent_executor:A2A Bridge agent started with address: agent1qtmxvc3lp8qn9jtq4w22xw27ygx9qvuzme85un6cdn9r4v8fxszs5d4rsr2
-INFO:uagents_a2a_adapter.agentverse_agent_executor:Target Agentverse agent: agent1qdv2qgxucvqatam6nv28qp202f3pw8xqpfm8man6zyegztuzd2t6yem9evl
-INFO:     [a2a_agentverse_bridge]: Agent inspector available at https://agentverse.ai/inspect/?uri=http%3A//127.0.0.1%3A8082&address=agent1qtmxvc3lp8qn9jtq4w22xw27ygx9qvuzme85un6cdn9r4v8fxszs5d4rsr2
+INFO:uagents_a2a_adapter.main:Starting A2A server bridged to Agentverse agent: agent1q...
+INFO:     [a2a_agentverse_bridge]: Starting agent with address: agent1qtm...
+INFO:uagents_a2a_adapter.agentverse_agent_executor:A2A Bridge agent started with address: agent1qtm...
+INFO:uagents_a2a_adapter.agentverse_agent_executor:Target Agentverse agent: agent1q...
+INFO:     [a2a_agentverse_bridge]: Agent inspector available at https://agentverse.ai/inspect/?uri=http%3A//127.0.0.1%3A8082&address=agent1qtm...
 INFO:uagents_a2a_adapter.agentverse_agent_executor:✅ A2A Bridge to Agentverse started successfully
-INFO:uagents_a2a_adapter.main:🚀 A2A server starting on localhost:9001
-INFO:uagents_a2a_adapter.main:🔗 Bridging to Agentverse agent: agent1qdv2qgxucvqatam6nv28qp202f3pw8xqpfm8man6zyegztuzd2t6yem9evl
-INFO:uagents_a2a_adapter.main:📋 Agent name: Finance Q&A Agent
-INFO:     Uvicorn running on http://localhost:9001 (Press CTRL+C to quit)
+INFO:uagents_a2a_adapter.main:🚀 A2A server starting on localhost:10000
+INFO:uagents_a2a_adapter.main:🔗 Bridging to Agentverse agent: agent1q...
+INFO:uagents_a2a_adapter.main:📋 Agent name: Currency Exchange Agent
+INFO:     Uvicorn running on http://localhost:10000 (Press CTRL+C to quit)
 ```
 
-### Step 4: Connect Bridge Agent
+#### Connect Bridge Agent to Agentverse
 
-1. Click on the Agent Inspector link from the terminal output
+1. Click on the **Agent Inspector link** from the terminal output
 2. Click **Connect** button
 3. Select **Mailbox**
 4. Click **Finish**
 
-### Step 5: Test with A2A Client
+### Step 3: Test with A2A Clients
 
-#### Option A: Using Curl
+#### Option A: Using the Test Client
+
+Run the included test client in a new terminal:
 
 ```bash
-curl -X POST http://localhost:9001 \
+# In a new terminal
+python examples/test_currencyExchange_client.py
+```
+
+You'll see various currency exchange queries and responses:
+
+```
+📤 Query: Convert 100 USD to EUR
+✅ Response: The current exchange rate from USD to EUR is 0.85441. 
+    So 100 USD equals approximately 85.44 EUR.
+
+📤 Query: What is the GBP to JPY rate?
+✅ Response: The current exchange rate from GBP to JPY is 156.789
+    British Pounds to Japanese Yen.
+
+📤 Query: 500 euros to dollars
+✅ Response: Converting 500 EUR to USD at the current rate of 1.17002
+    equals approximately 585.01 USD.
+```
+
+#### Option B: Using Curl
+
+You can also test directly with curl:
+
+```bash
+curl -X POST http://localhost:10000 \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
@@ -143,7 +194,7 @@ curl -X POST http://localhost:9001 \
         "parts": [
           {
             "kind": "text",
-            "text": "What is a stock?"
+            "text": "Convert 100 USD to EUR"
           }
         ],
         "messageId": "msg-1"
@@ -153,19 +204,37 @@ curl -X POST http://localhost:9001 \
   }'
 ```
 
-#### Option B: Using the Test Client
-
-Run the included test client:
-
-```bash
-python examples/test_client.py
+Expected response:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "test-1",
+  "result": {
+    "response": {
+      "role": "assistant",
+      "parts": [
+        {
+          "kind": "text",
+          "text": "The current exchange rate from USD to EUR is 0.85441. So 100 USD equals approximately 85.44 EUR."
+        }
+      ]
+    }
+  }
+}
 ```
 
-Or the simplified Perplexity client:
+### ✅ That's It!
 
-```bash
-python examples/test_perplexity_client.py
-```
+You now have a **complete A2A-compatible currency exchange service** running! The workflow demonstrates:
+
+- ✅ **Natural Language Processing**: "Convert 100 dollars to euros"
+- ✅ **Real-time Exchange Rates**: Live data from Frankfurter API
+- ✅ **LangChain Integration**: Google Gemini for query understanding
+- ✅ **uAgent Messaging**: Complete uAgent-to-uAgent communication
+- ✅ **A2A Protocol**: Standard JSON-RPC over HTTP
+- ✅ **Session Persistence**: Context maintained across queries
+
+
 
 ## Programmatic Usage
 
@@ -205,15 +274,11 @@ print(f"Server started at: {result['endpoint']}")
 | `--host` | No | Host (default: localhost) |
 | `--port` | No | Port (default: 10000) |
 
-## Examples
 
-### Currency Agent
-```bash
-uagents-a2a \
-  --agent-address "agent1qv3yr66aw2qu3gzce5ckae84uj8ea5hua90q9mzwxcr9ghvtv0xeykme4dv" \
-  --agent-name "Currency Exchange Agent" \
-  --skill-tags "currency,exchange,rates"
-```
+
+## Other Example Agents
+
+You can also adapt the A2A bridge to work with other Agentverse agents:
 
 ### GitHub Agent
 ```bash
@@ -226,26 +291,37 @@ uagents-a2a \
 ### Perplexity Research Agent
 ```bash
 uagents-a2a \
-  --agent-address "agent1qdv2qgxucvqatam6nv28qp202f3pw8xqpfm8man6zyegztuzd2t6yem9evl" \
+  --agent-address "agent1qgzd0c60d4c5n37m4pzuclv5p9vwsftmfkznksec3drux8qnhmvuymsmshp" \
   --agent-name "Perplexity Research Agent" \
-  --agent-description "AI-powered research and web search capabilities"
-  --skill-tags "research,search,web,perplexity,ai"
+  --agent-description "AI-powered research and web search capabilities" \
+  --skill-tags "research,search,web,perplexity,ai" \
   --skill-examples "Latest AI developments,Research quantum computing,What happened today?"
+```
+
+### Financial Q&A Agent
+```bash
+uagents-a2a \
+  --agent-address "agent1qfjjdp5nnvxqtfcusfn9qhk7zv5k2jm2mq0zu3vfnf0p8q9mwj9zx6zv8p" \
+  --agent-name "Financial Q&A Agent" \
+  --agent-description "Financial markets analysis and investment guidance" \
+  --skill-tags "finance,investment,markets,analysis" \
+  --skill-examples "What are government bonds?,Explain cryptocurrency market,Investment strategies for 2024"
 ```
 
 ## Package Structure
 
 ```
 uagents_a2a_adapter/
-├── __init__.py                     # Package exports
+├── __init__.py                     # Package exports  
 ├── main.py                         # CLI and A2A server
 ├── adapter.py                      # Programmatic API (A2ARegisterTool)
 └── agentverse_agent_executor.py    # Core bridge logic
 
 examples/
-├── test_client.py                  # Full-featured test client
-├── test_perplexity_client.py       # Simplified test client
-└── perplexity_agent_example.py     # Perplexity agent example
+├── currency-exchange-agent/
+│   ├── currency_uagent.py          # Complete currency uAgent with LangChain
+│   └── agent.py                    # Currency processing logic
+└── test_currencyExchange_client.py # A2A test client for currency queries
 ```
 
 ## How It Works
