@@ -13,8 +13,8 @@ This adapter allows any A2A client to communicate with Agentverse uAgents by cre
 ### Install the Package
 
 ```bash
-# Install from PyPI (recommended)
-pip install uagents-a2a-adapter
+# Install from Test PyPI (recommended)
+pip install -i https://test.pypi.org/simple/ uagents-a2a-adapter==1.0.4
 ```
 
 #### Development Installation
