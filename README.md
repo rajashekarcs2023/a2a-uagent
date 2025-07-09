@@ -280,12 +280,14 @@ print(f"Server started at: {result['endpoint']}")
 
 You can also adapt the A2A bridge to work with other Agentverse agents:
 
-### GitHub Agent
+### Financial Q&A Agent
 ```bash
 uagents-a2a \
-  --agent-address "agent1qv7uuldfcrp3f3y6309amaspr2e8f26g7qhh2lln62n2ssa04ugzk9rsw4" \
-  --agent-name "GitHub MCP Agent" \
-  --skill-tags "github,git,repository,code"
+  --agent-address "agent1qfjjdp5nnvxqtfcusfn9qhk7zv5k2jm2mq0zu3vfnf0p8q9mwj9zx6zv8p" \
+  --agent-name "Financial Q&A Agent" \
+  --agent-description "Financial markets analysis and investment guidance" \
+  --skill-tags "finance,investment,markets,analysis" \
+  --skill-examples "What are government bonds?,Explain cryptocurrency market,Investment strategies for 2024"
 ```
 
 ### Perplexity Research Agent
@@ -298,14 +300,12 @@ uagents-a2a \
   --skill-examples "Latest AI developments,Research quantum computing,What happened today?"
 ```
 
-### Financial Q&A Agent
+### GitHub Agent
 ```bash
 uagents-a2a \
-  --agent-address "agent1qfjjdp5nnvxqtfcusfn9qhk7zv5k2jm2mq0zu3vfnf0p8q9mwj9zx6zv8p" \
-  --agent-name "Financial Q&A Agent" \
-  --agent-description "Financial markets analysis and investment guidance" \
-  --skill-tags "finance,investment,markets,analysis" \
-  --skill-examples "What are government bonds?,Explain cryptocurrency market,Investment strategies for 2024"
+  --agent-address "agent1qv7uuldfcrp3f3y6309amaspr2e8f26g7qhh2lln62n2ssa04ugzk9rsw4" \
+  --agent-name "GitHub MCP Agent" \
+  --skill-tags "github,git,repository,code"
 ```
 
 ## Package Structure
